@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from typing import Type, TypeVar
+import sys
 import readline
 from math import sqrt
 from pathlib import Path
@@ -29,7 +30,7 @@ def equation_solver(input: Path | None):
             params = read_params_file(input, params_count=3, param_type=float)
         except InputFileFormatException as err:
             click.echo(err)
-            return
+            sys.exit(1)
 
     click.echo(f"Equation is: {str_equation(*params)}")
 
