@@ -29,7 +29,6 @@ def equation_solver(input: Path | None):
 def str_equation(a: float, b: float, c: float):
     return f"({a:.1f}) x^2 + ({b:.1f}) x + ({c:.1f}) = 0"
 
-# Some stupid comment
 
 def solve_equation(
     a: float, b: float, c: float
