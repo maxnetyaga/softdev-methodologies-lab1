@@ -7,6 +7,10 @@ from pathlib import Path
 import click
 
 
+class InputFileFormatException(Exception):
+    pass
+
+
 @click.command()
 @click.argument("input", type=Path, required=False)
 def equation_solver(input: Path | None):
@@ -18,7 +22,14 @@ def equation_solver(input: Path | None):
     """
 
     if not input:
-        params = read_params_stdin()
+        params = read_params_stdin(param_type=float)
+        click.echo()
+    else:
+        try:
+            params = read_params_file(input, params_count=3, param_type=float)
+        except InputFileFormatException as err:
+            click.echo(err)
+            return
 
     click.echo(f"Equation is: {str_equation(*params)}")
 
@@ -49,17 +60,17 @@ def solve_equation(
     return roots
 
 
-def read_params_stdin() -> tuple[float, float, float]:
-    a = read_param_stdin("a", float)
-    b = read_param_stdin("b", float)
-    c = read_param_stdin("c", float)
-    return (a, b, c)
-
-
 T = TypeVar("T")
 
 
-def read_param_stdin(name, param_type: Type[T]) -> T:
+def read_params_stdin(param_type: Type[T]) -> tuple[T, T, T]:
+    a = read_param_stdin("a", param_type)
+    b = read_param_stdin("b", param_type)
+    c = read_param_stdin("c", param_type)
+    return (a, b, c)
+
+
+def read_param_stdin(name, param_type):
     while True:
         try:
             param = param_type(input(f"{name} = "))
@@ -67,6 +78,24 @@ def read_param_stdin(name, param_type: Type[T]) -> T:
         except ValueError:
             click.echo("Value is invalid! Try again")
 
+
+def read_params_file(
+        path: Path, params_count, param_type: Type
+) -> list:
+    with path.open() as file:
+        params = file.readline().split()
+
+    if len(params) != params_count:
+        raise InputFileFormatException(
+            "Provided unexpected number of parameters")
+    
+    for i in range(len(params)):
+        try:
+            params[i] = param_type(params[i])
+        except ValueError:
+            raise InputFileFormatException(f"Parameter #{i+1} has wrong format")
+
+    return params
 
 if __name__ == '__main__':
     equation_solver()
